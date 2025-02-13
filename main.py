@@ -1,20 +1,25 @@
 import nltk
-import pymupdf
+import pdfplumber
 from nltk.tokenize import sent_tokenize
 from transformers import MarianMTModel, MarianTokenizer
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
 
 nltk.download("punkt")
 nltk.download("punkt_tab")
 
-doc = pymupdf.open("media/test.pdf")
 
-result = ""
-for page in doc:
-    result += page.get_text()
+def extract_text_from_pdf(pdf_path):
+    with pdfplumber.open(pdf_path) as pdf:
+        return "\n".join(
+            [page.extract_text() for page in pdf.pages if page.extract_text()]
+        )
 
-print("Original Text:\n")
+
+print("\nOriginal Text:")
+result = extract_text_from_pdf("media/test.pdf")
 print(result)
 
 
@@ -44,18 +49,23 @@ def translate_text(sentences, batch_size=5):
     return translations
 
 
-print("Translated Text:\n")
+print("\nTranslated Text:")
 translated_chunks = translate_text(chunks)
 print(translated_chunks)
 
 
 def save_to_pdf(translated_text, output_pdf):
-    c = canvas.Canvas(output_pdf)
-    c.setFont("Helvetica", 12)
+    c = canvas.Canvas(output_pdf, pagesize=letter)
+
+    # Register and set a font that supports greek characters
+    pdfmetrics.registerFont(
+        TTFont("DejaVu", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    )
+    c.setFont("DejaVu", 12)
 
     y = 750  # Start position
     for sentence in translated_text:
-        c.drawString(50, y, sentence.encode("utf-8").decode("utf-8"))
+        c.drawString(50, y, sentence.strip())
         y -= 20  # Move down per line
         if y < 50:  # New page if needed
             c.showPage()
