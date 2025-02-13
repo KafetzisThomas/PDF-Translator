@@ -2,6 +2,8 @@ import nltk
 import pymupdf
 from nltk.tokenize import sent_tokenize
 from transformers import MarianMTModel, MarianTokenizer
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 nltk.download("punkt")
 nltk.download("punkt_tab")
@@ -43,4 +45,23 @@ def translate_text(sentences, batch_size=5):
 
 
 print("Translated Text:\n")
-print(translate_text(chunks))
+translated_chunks = translate_text(chunks)
+print(translated_chunks)
+
+
+def save_to_pdf(translated_text, output_pdf):
+    c = canvas.Canvas(output_pdf)
+    c.setFont("Helvetica", 12)
+
+    y = 750  # Start position
+    for sentence in translated_text:
+        c.drawString(50, y, sentence.encode("utf-8").decode("utf-8"))
+        y -= 20  # Move down per line
+        if y < 50:  # New page if needed
+            c.showPage()
+            y = 750
+
+    c.save()
+
+
+save_to_pdf(translated_chunks, "translated.pdf")
