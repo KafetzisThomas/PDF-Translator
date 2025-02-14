@@ -1,3 +1,4 @@
+import sys
 import nltk
 import pdfplumber
 from nltk.tokenize import sent_tokenize
@@ -65,21 +66,31 @@ def save_to_pdf(translated_text, output_pdf):
 
 
 if __name__ == "__main__":
-    input_pdf_path = extract_text_from_pdf("media/test.pdf")
-    print("\nOriginal Text:")
-    print(input_pdf_path)
+    try:
+        input_pdf_path = sys.argv[1]
+        input_text = extract_text_from_pdf(input_pdf_path)
+        print("\nOriginal Text:")
+        print(input_text)
 
-    chunks = split_text(input_pdf_path)
+        chunks = split_text(input_text)
 
-    model_name = "Helsinki-NLP/opus-mt-en-el"  # for specific language translation
-    print(f"\nLoading translation model: {model_name}")
-    tokenizer = MarianTokenizer.from_pretrained(model_name)
-    model = MarianMTModel.from_pretrained(model_name)
+        model_name = sys.argv[3]  # for specific language translation
+        print(f"\nLoading translation model: {model_name}")
+        tokenizer = MarianTokenizer.from_pretrained(model_name)
+        model = MarianMTModel.from_pretrained(model_name)
 
-    translated_chunks = translate_text(chunks)
-    print("\nTranslated Text:")
-    print(translated_chunks)
+        translated_chunks = translate_text(chunks)
+        print("\nTranslated Text:")
+        print(translated_chunks)
 
-    output_pdf_path = "translated.pdf"
-    save_to_pdf(translated_chunks, output_pdf_path)
-    print(f"\nTranslated text saved to: {output_pdf_path}")
+        output_pdf_path = sys.argv[2]
+        save_to_pdf(translated_chunks, output_pdf_path)
+        print(f"\nTranslated text saved to: {output_pdf_path}")
+    except IndexError:
+        print(
+            "\nUsage: python3 main.py <input_pdf_path> <output_pdf_path> <translation_model>"
+        )
+        sys.exit()
+    except FileNotFoundError:
+        print(f"Error: The file '{input_pdf_path}' was not found.")
+        sys.exit()
