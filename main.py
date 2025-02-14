@@ -15,6 +15,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
+from textwrap import wrap
 
 nltk.download("punkt")
 nltk.download("punkt_tab")
@@ -61,7 +62,7 @@ def save_to_pdf(translated_text, output_pdf):
     """
     c = canvas.Canvas(output_pdf, pagesize=letter)
 
-    # Set a font that supports greek characters
+    # Set DejaVu as font (supports multiple languages)
     pdfmetrics.registerFont(
         TTFont("DejaVu", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
     )
@@ -69,11 +70,13 @@ def save_to_pdf(translated_text, output_pdf):
 
     y = 750  # Start position
     for sentence in translated_text:
-        c.drawString(50, y, sentence.strip())
-        y -= 20  # Move down per line
-        if y < 50:  # New page if needed
-            c.showPage()
-            y = 750
+        wrapped_lines = wrap(sentence.strip(), width=70)
+        for line in wrapped_lines:
+            c.drawString(50, y, line)
+            y -= 20  # Move down per line
+            if y < 50:  # New page if needed
+                c.showPage()
+                y = 750
 
     c.save()
 
