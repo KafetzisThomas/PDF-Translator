@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+# Project Title: PDF-Translator (https://github.com/KafetzisThomas/PDF-Translator)
+# Author / Project Owner: KafetzisThomas (https://github.com/KafetzisThomas)
+# License: MIT
+
 import sys
 import nltk
 import pdfplumber
