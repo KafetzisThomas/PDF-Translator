@@ -12,34 +12,26 @@ nltk.download("punkt_tab")
 
 
 def extract_text_from_pdf(pdf_path):
+    """
+    Extract text from a pdf file.
+    """
     with pdfplumber.open(pdf_path) as pdf:
         return "\n".join(
             [page.extract_text() for page in pdf.pages if page.extract_text()]
         )
 
 
-print("\nOriginal Text:")
-result = extract_text_from_pdf("media/test.pdf")
-print(result)
-
-
 def split_text(text):
     """
-    Split into sentences.
+    Split text into chunks (sentences).
     """
     return sent_tokenize(text.strip())
 
 
-chunks = split_text(result)
-# print(type(chunks))
-
-
-model_name = "Helsinki-NLP/opus-mt-en-el"  # for specific language translation
-tokenizer = MarianTokenizer.from_pretrained(model_name)
-model = MarianMTModel.from_pretrained(model_name)
-
-
 def translate_text(sentences, batch_size=5):
+    """
+    Translate sentences using a pre-trained model.
+    """
     translations = []
     for i in range(0, len(sentences), batch_size):
         batch = sentences[i : i + batch_size]
@@ -49,15 +41,13 @@ def translate_text(sentences, batch_size=5):
     return translations
 
 
-print("\nTranslated Text:")
-translated_chunks = translate_text(chunks)
-print(translated_chunks)
-
-
 def save_to_pdf(translated_text, output_pdf):
+    """
+    Save translated sentences to a pdf file.
+    """
     c = canvas.Canvas(output_pdf, pagesize=letter)
 
-    # Register and set a font that supports greek characters
+    # Set a font that supports greek characters
     pdfmetrics.registerFont(
         TTFont("DejaVu", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
     )
@@ -74,4 +64,22 @@ def save_to_pdf(translated_text, output_pdf):
     c.save()
 
 
-save_to_pdf(translated_chunks, "translated.pdf")
+if __name__ == "__main__":
+    input_pdf_path = extract_text_from_pdf("media/test.pdf")
+    print("\nOriginal Text:")
+    print(input_pdf_path)
+
+    chunks = split_text(input_pdf_path)
+
+    model_name = "Helsinki-NLP/opus-mt-en-el"  # for specific language translation
+    print(f"\nLoading translation model: {model_name}")
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    model = MarianMTModel.from_pretrained(model_name)
+
+    translated_chunks = translate_text(chunks)
+    print("\nTranslated Text:")
+    print(translated_chunks)
+
+    output_pdf_path = "translated.pdf"
+    save_to_pdf(translated_chunks, output_pdf_path)
+    print(f"\nTranslated text saved to: {output_pdf_path}")
