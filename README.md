@@ -20,3 +20,5 @@ $ python3 main.py '$input_pdf_path' '$output_pdf_path' '$translation_model'
 2. Split text into chunks (sentences).
 3. Translate sentences using a pre-trained model.
 4. Save translated sentences to a new pdf file.
+
+The tool automatically uses the GPU for translation if available; otherwise, it falls back to the CPU.

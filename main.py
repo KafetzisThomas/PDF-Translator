@@ -6,6 +6,7 @@
 # License: MIT
 
 import sys
+import torch
 import nltk
 import pdfplumber
 from nltk.tokenize import sent_tokenize
@@ -44,6 +45,11 @@ def translate_text(sentences, batch_size=5):
     for i in range(0, len(sentences), batch_size):
         batch = sentences[i : i + batch_size]
         inputs = tokenizer(batch, return_tensors="pt", padding=True, truncation=True)
+
+        # Move inputs to GPU if available
+        if torch.cuda.is_available():
+            inputs = {key: value.to("cuda") for key, value in inputs.items()}
+
         outputs = model.generate(**inputs)
         translations.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
     return translations
@@ -85,6 +91,13 @@ if __name__ == "__main__":
         print(f"\nLoading translation model: {model_name}")
         tokenizer = MarianTokenizer.from_pretrained(model_name)
         model = MarianMTModel.from_pretrained(model_name)
+
+        # Move model to GPU if available
+        if torch.cuda.is_available():
+            model.to("cuda")
+            print("Using GPU for translation.")
+        else:
+            print("GPU not available. Using CPU for translation.")
 
         translated_chunks = translate_text(chunks)
         print("\nTranslated Text:")
